@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: student_analytics_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: student_analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+# This docker-compose file sets up a PostgreSQL database for the student analytics application. It defines a service named "db" that uses the official PostgreSQL image. The database is configured with a username, password, and database name. The database is exposed on port 5432, and the data is persisted using a Docker volume named "postgres_data".

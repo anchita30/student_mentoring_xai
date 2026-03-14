@@ -1,0 +1,20 @@
+# Virtual Environment (teammates recreate this themselves)
+backend/venv/
+
+# Windows junk
+Thumbs.db
+desktop.ini
+
+# VS Code personal settings
+.vscode/
+
+# Python cache (auto generated, not needed)
+__pycache__/
+*.pyc
+
+# Node modules (teammates run npm install to recreate)
+frontend/node_modules/
+.next/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
