@@ -3,6 +3,24 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(100), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(100), nullable=False)
+    full_name = Column(String(100), nullable=False)
+    user_type = Column(String(20), nullable=False)  # "student" or "mentor"
+    is_active = Column(Boolean, default=True, nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationship to student (if user is a student)
+    student = relationship("Student", back_populates="user")
+
+
 class Student(Base):
     __tablename__ = "students"
 
@@ -16,6 +34,7 @@ class Student(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
+    user = relationship("User", back_populates="student")
     academic_records = relationship("AcademicRecord", back_populates="student")
     courses = relationship("Course", back_populates="student")
     projects = relationship("Project", back_populates="student")
@@ -112,6 +131,12 @@ class MentorFeedback(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     mentor_name = Column(String(100), nullable=False)
+    # Mentor assessment ratings
+    attendance_percentage = Column(Float, nullable=True)
+    participation_rating = Column(Float, nullable=True)  # 1-10
+    lab_performance_rating = Column(Float, nullable=True)  # 1-10
+    assignment_consistency = Column(Float, nullable=True)  # 1-10
+    # Recommendations
     recommended_domain = Column(String(100), nullable=True)
     recommended_courses = Column(Text, nullable=True)
     recommended_projects = Column(Text, nullable=True)
