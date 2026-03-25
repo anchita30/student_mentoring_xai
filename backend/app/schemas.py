@@ -101,6 +101,12 @@ class SkillResponse(SkillCreate):
 
 class MentorFeedbackCreate(BaseModel):
     mentor_name: str
+    # Mentor assessment ratings (new fields)
+    attendance_percentage: Optional[float] = None
+    participation_rating: Optional[float] = None  # 1-10
+    lab_performance_rating: Optional[float] = None  # 1-10
+    assignment_consistency: Optional[float] = None  # 1-10
+    # Recommendations
     recommended_domain: Optional[str] = None
     recommended_courses: Optional[str] = None
     recommended_projects: Optional[str] = None
