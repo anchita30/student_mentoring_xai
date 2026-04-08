@@ -86,6 +86,33 @@ export interface GlobalFeatureImportance {
   importance: number;
 }
 
+export interface TextualExplanation {
+  student_id: number;
+  domain: string;
+  score: number;
+  explanation: string;
+  confidence_level: string;
+  top_factors: number;
+  improvement_areas: number;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  conversation_history: ChatMessage[];
+  user_role: "student" | "mentor";
+  user_id: number;
+}
+
+export interface ChatResponse {
+  response: string;
+  success: boolean;
+}
+
 // ─── Student APIs ───────────────────────────────────────────────
 export const studentAPI = {
   // Create new student
@@ -190,6 +217,33 @@ export const predictionAPI = {
   // Get global feature importance
   getGlobalImportance: async (): Promise<GlobalFeatureImportance[]> => {
     const response = await api.get("/predict/global-importance");
+    return response.data;
+  },
+
+  // Get textual explanation for a student's prediction
+  explainTextual: async (
+    studentId: number,
+    domain?: string
+  ): Promise<TextualExplanation> => {
+    const url = domain
+      ? `/predict/${studentId}/explain-text?domain=${domain}`
+      : `/predict/${studentId}/explain-text`;
+    const response = await api.get(url);
+    return response.data;
+  },
+};
+
+// ─── Chatbot APIs ───────────────────────────────────────────────
+export const chatAPI = {
+  // Send message to chatbot
+  sendMessage: async (request: ChatRequest): Promise<ChatResponse> => {
+    const response = await api.post("/api/chat", request);
+    return response.data;
+  },
+
+  // Check chatbot health
+  checkHealth: async () => {
+    const response = await api.get("/api/chat/health");
     return response.data;
   },
 };

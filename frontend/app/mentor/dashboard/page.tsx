@@ -11,7 +11,8 @@ import {
 } from "recharts";
 import { generateStudentPDF } from "@/lib/generatePDF";
 import { studentAPI, predictionAPI } from "@/lib/api";
-import type { SHAPExplanation } from "@/lib/api";
+import type { SHAPExplanation, TextualExplanation as TextualExplanationType } from "@/lib/api";
+import ChatBot from "@/components/ChatBot";
 
 const MOCK_STUDENTS = [
   {
@@ -33,6 +34,7 @@ const MOCK_STUDENTS = [
     gpa: 8.5,
     projects: 3,
     certificates: 2,
+    hasData: true,
   },
   {
     id: 2, name: "Priya Patel", roll: "EN2024002", semester: 5, branch: "CS",
@@ -53,6 +55,7 @@ const MOCK_STUDENTS = [
     gpa: 8.9,
     projects: 4,
     certificates: 3,
+    hasData: true,
   },
   {
     id: 3, name: "Arjun Singh", roll: "EN2024003", semester: 5, branch: "CS",
@@ -73,6 +76,7 @@ const MOCK_STUDENTS = [
     gpa: 8.2,
     projects: 2,
     certificates: 1,
+    hasData: true,
   },
   {
     id: 4, name: "Sneha Kulkarni", roll: "EN2024004", semester: 5, branch: "CS",
@@ -93,6 +97,7 @@ const MOCK_STUDENTS = [
     gpa: 9.1,
     projects: 5,
     certificates: 4,
+    hasData: true,
   },
 ];
 
@@ -130,6 +135,9 @@ export default function MentorDashboard() {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [shapData, setShapData] = useState<SHAPExplanation[] | null>(null);
   const [loadingShap, setLoadingShap] = useState(false);
+  const [textualExplanation, setTextualExplanation] = useState<TextualExplanationType | null>(null);
+  const [loadingTextualExplanation, setLoadingTextualExplanation] = useState(false);
+  const [explanationTab, setExplanationTab] = useState<'chart' | 'text'>('chart');
   const [globalImportance, setGlobalImportance] = useState<Array<{feature: string, importance: number}>>([]);
   const [loadingGlobalImportance, setLoadingGlobalImportance] = useState(false);
 
@@ -320,6 +328,7 @@ export default function MentorDashboard() {
   useEffect(() => {
     if (selectedStudent) {
       fetchShapData(selectedStudent.id);
+      fetchTextualExplanation(selectedStudent.id);
     }
   }, [selectedStudent]);
 
@@ -341,6 +350,19 @@ export default function MentorDashboard() {
       setShapData(null);
     } finally {
       setLoadingShap(false);
+    }
+  };
+
+  const fetchTextualExplanation = async (studentId: number) => {
+    setLoadingTextualExplanation(true);
+    try {
+      const result = await predictionAPI.explainTextual(studentId);
+      setTextualExplanation(result);
+    } catch (error) {
+      console.error("Failed to fetch textual explanation:", error);
+      setTextualExplanation(null);
+    } finally {
+      setLoadingTextualExplanation(false);
     }
   };
 
@@ -366,7 +388,7 @@ export default function MentorDashboard() {
     fontSize: "13px",
     outline: "none",
     width: "100%",
-    fontFamily: "var(--font-architects)",
+    fontFamily: "var(--font-poppins)",
     color: "#1f1f1f",
   };
 
@@ -376,13 +398,13 @@ export default function MentorDashboard() {
     color: "#6b7280",
     marginBottom: "6px",
     display: "block" as const,
-    fontFamily: "var(--font-architects)",
+    fontFamily: "var(--font-poppins)",
   };
 
   return (
     <div className="min-h-screen" style={{
       background: "linear-gradient(135deg, #f5f0ff 0%, #fde8f0 25%, #e8f8f2 50%, #deeeff 100%)",
-      fontFamily: "var(--font-architects)",
+      fontFamily: "var(--font-poppins)",
     }}>
 
       <style>{`
@@ -487,7 +509,7 @@ export default function MentorDashboard() {
               <p className="text-xs font-medium" style={{ color: "#065f46" }}>
                 {user?.full_name || "Mentor"}
               </p>
-              <p className="text-xs" style={{ color: "#9ca3af" }}>Mentor • CS</p>
+              <p className="text-xs" style={{ color: "#9ca3af" }}>Mentor • {user?.department || "N/A"}</p>
             </div>
           </div>
           <button
@@ -688,24 +710,42 @@ export default function MentorDashboard() {
                   }}>
                   {selectedStudent.status === "reviewed" ? "✓ Reviewed" : "⏳ Pending Review"}
                 </span>
-                {/* PDF Download button */}
-                <button
-                  onClick={handleDownloadPDF}
-                  className="save-btn px-4 py-2 rounded-2xl text-sm font-semibold text-white flex items-center gap-2"
-                  style={{ background: "linear-gradient(135deg, #60a5fa, #2563eb)", boxShadow: "0 4px 15px rgba(37,99,235,0.3)" }}>
-                  📄 Download PDF
-                </button>
+                {/* PDF Download button - only available after review */}
+                {selectedStudent.status === "reviewed" ? (
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="save-btn px-4 py-2 rounded-2xl text-sm font-semibold text-white flex items-center gap-2 transition-all hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg, #60a5fa, #2563eb)", boxShadow: "0 4px 15px rgba(37,99,235,0.3)" }}>
+                    📄 Download PDF
+                  </button>
+                ) : (
+                  <div className="relative group">
+                    <button
+                      disabled
+                      className="px-4 py-2 rounded-2xl text-sm font-semibold text-white flex items-center gap-2 cursor-not-allowed opacity-50"
+                      style={{ background: "linear-gradient(135deg, #9ca3af, #6b7280)" }}>
+                      🔒 Download PDF
+                    </button>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap"
+                      style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+                      Complete your review to unlock PDF download
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 mb-6">
+            {/* Check if student has data before showing predictions */}
+            {selectedStudent.hasData && Object.keys(selectedStudent.scores).length > 0 ? (
+              <div className="grid grid-cols-2 gap-6 mb-6">
 
-              {/* Domain scores */}
-              <div className="glass-card p-6">
-                <h3 className="font-bold text-sm mb-4" style={{ color: "#1f1f1f" }}>
-                  🎯 Domain Suitability Scores
-                </h3>
-                <div className="flex flex-col gap-3">
+                {/* Domain scores */}
+                <div className="glass-card p-6">
+                  <h3 className="font-bold text-sm mb-4" style={{ color: "#1f1f1f" }}>
+                    🎯 Domain Suitability Scores
+                  </h3>
+                  <div className="flex flex-col gap-3">
                   {Object.entries(selectedStudent.scores)
                     .sort((a, b) => b[1] - a[1])
                     .map(([domain, score]) => (
@@ -723,61 +763,190 @@ export default function MentorDashboard() {
                 </div>
               </div>
 
-              {/* SHAP XAI Chart */}
+              {/* XAI Explanations with Tabs */}
               <div className="glass-card p-6">
-                <h3 className="font-bold text-sm mb-1" style={{ color: "#1f1f1f" }}>
-                  🧠 SHAP — Why This Domain?
-                </h3>
-                <p className="text-xs mb-4" style={{ color: "#9ca3af" }}>
-                  Feature contributions to top domain score {loadingShap && "(Loading...)"}
-                </p>
-                {!loadingShap ? (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart
-                      data={shapData || selectedStudent.shap}
-                      layout="vertical"
-                      margin={{ left: 10, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-                      <XAxis type="number" tick={{ fontSize: 10 }} />
-                      <YAxis type="category" dataKey="feature" tick={{ fontSize: 10 }} width={120} />
-                      <Tooltip
-                        formatter={(value: unknown) => {
-                          const v = Number(value);
-                          return [v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2), "Contribution"];
-                        }}
-                        contentStyle={{ borderRadius: "12px", border: "none", background: "rgba(255,255,255,0.9)" }}
-                      />
-                      <Bar dataKey="contribution" radius={[0, 6, 6, 0]} fill="#34d399" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[200px]">
-                    <p className="text-sm text-gray-400">Loading explanations...</p>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-sm" style={{ color: "#1f1f1f" }}>
+                    🧠 AI Explanations — Why This Domain?
+                  </h3>
+                  {/* Tab Switcher */}
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setExplanationTab('chart')}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                        explanationTab === 'chart'
+                          ? 'bg-white text-green-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}>
+                      📊 Chart View
+                    </button>
+                    <button
+                      onClick={() => setExplanationTab('text')}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                        explanationTab === 'text'
+                          ? 'bg-white text-green-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}>
+                      💬 Text Explanation
+                    </button>
                   </div>
+                </div>
+
+                {explanationTab === 'chart' ? (
+                  // SHAP Chart Tab
+                  <>
+                    <p className="text-xs mb-4" style={{ color: "#9ca3af" }}>
+                      Feature contributions to top domain score {loadingShap && "(Loading...)"}
+                    </p>
+                    {!loadingShap ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart
+                          data={shapData || selectedStudent.shap}
+                          layout="vertical"
+                          margin={{ left: 10, right: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                          <XAxis type="number" tick={{ fontSize: 10 }} />
+                          <YAxis type="category" dataKey="feature" tick={{ fontSize: 10 }} width={120} />
+                          <Tooltip
+                            formatter={(value: unknown) => {
+                              const v = Number(value);
+                              return [v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2), "Contribution"];
+                            }}
+                            contentStyle={{ borderRadius: "12px", border: "none", background: "rgba(255,255,255,0.9)" }}
+                          />
+                          <Bar dataKey="contribution" radius={[0, 6, 6, 0]} fill="#34d399" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-[200px]">
+                        <p className="text-sm text-gray-400">Loading explanations...</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  // Textual Explanation Tab
+                  <>
+                    <p className="text-xs mb-4" style={{ color: "#9ca3af" }}>
+                      Human-readable explanation of why this domain was recommended
+                    </p>
+                    {!loadingTextualExplanation && textualExplanation ? (
+                      <div className="max-h-[300px] overflow-y-auto">
+                        <div className="prose prose-sm max-w-none">
+                          <div style={{ color: "#1f1f1f", lineHeight: "1.6" }}>
+                            {textualExplanation.explanation.split('\n').map((line: string, index: number) => {
+                              if (line.trim() === '') return <br key={index} />;
+
+                              // Handle headers
+                              if (line.startsWith('**') && line.endsWith('**')) {
+                                const text = line.slice(2, -2);
+                                return (
+                                  <h4 key={index} className="font-semibold text-green-700 mt-4 mb-2">
+                                    {text}
+                                  </h4>
+                                );
+                              }
+
+                              // Handle bullet points
+                              if (line.startsWith('•')) {
+                                return (
+                                  <div key={index} className="flex gap-2 mb-2">
+                                    <span className="text-green-600 font-bold">•</span>
+                                    <span style={{ color: "#4b5563" }}>{line.slice(1).trim()}</span>
+                                  </div>
+                                );
+                              }
+
+                              // Handle numbered items
+                              if (/^\d+\./.test(line.trim())) {
+                                return (
+                                  <div key={index} className="flex gap-2 mb-2">
+                                    <span className="text-green-600 font-bold">{line.match(/^\d+\./)?.[0]}</span>
+                                    <span style={{ color: "#4b5563" }}>{line.replace(/^\d+\.\s*/, '')}</span>
+                                  </div>
+                                );
+                              }
+
+                              // Handle confidence badge
+                              if (line.includes('Score:')) {
+                                return (
+                                  <div key={index} className="mb-3">
+                                    <span style={{ color: "#1f1f1f" }}>{line.split('Score:')[0]}</span>
+                                    <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                      Score: {textualExplanation.score.toFixed(1)}/100
+                                    </span>
+                                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                      {textualExplanation.confidence_level} Confidence
+                                    </span>
+                                  </div>
+                                );
+                              }
+
+                              // Regular paragraphs
+                              return (
+                                <p key={index} className="mb-3" style={{ color: "#4b5563" }}>
+                                  {line}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ) : loadingTextualExplanation ? (
+                      <div className="flex items-center justify-center h-[200px]">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                          <p className="text-sm text-gray-400">Generating explanation...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-[200px]">
+                        <p className="text-sm text-gray-400">Failed to load explanation. Please try again.</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
-
-            {/* Academic data */}
-            <div className="glass-card p-6 mb-6">
-              <h3 className="font-bold text-sm mb-4" style={{ color: "#1f1f1f" }}>📚 Academic Performance</h3>
-              <div className="grid grid-cols-5 gap-3">
-                {Object.entries(selectedStudent.marks).map(([subject, mark]) => (
-                  <div key={subject} className="rounded-2xl p-3 text-center"
-                    style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                    <p className="text-xl font-bold mb-1" style={{ color: "#059669" }}>{mark}</p>
-                    <p className="text-xs" style={{ color: "#9ca3af" }}>
-                      {subject.replace(/_/g, " ").split(" ").slice(0, 2).join(" ")}
-                    </p>
-                  </div>
-                ))}
-                <div className="rounded-2xl p-3 text-center"
-                  style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}>
-                  <p className="text-xl font-bold mb-1" style={{ color: "#7c3aed" }}>{selectedStudent.gpa}</p>
-                  <p className="text-xs" style={{ color: "#9ca3af" }}>GPA</p>
+            ) : (
+              /* No data message */
+              <div className="glass-card p-8 mb-6 text-center">
+                <div className="mb-4 text-5xl">📊</div>
+                <h3 className="font-bold text-lg mb-2" style={{ color: "#1f1f1f" }}>
+                  No Data Available Yet
+                </h3>
+                <p className="text-sm mb-4" style={{ color: "#9ca3af" }}>
+                  This student hasn't filled in their academic information yet. 
+                  Domain predictions and AI explanations will appear once they complete their profile.
+                </p>
+                <div className="inline-block px-4 py-2 rounded-xl text-xs font-medium"
+                  style={{ background: "rgba(251,146,60,0.1)", color: "#ea580c" }}>
+                  ⏳ Waiting for student to enter data
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Academic data - only show if student has data */}
+            {selectedStudent.hasData && (Object.keys(selectedStudent.marks).length > 0 || selectedStudent.gpa > 0) && (
+              <div className="glass-card p-6 mb-6">
+                <h3 className="font-bold text-sm mb-4" style={{ color: "#1f1f1f" }}>📚 Academic Performance</h3>
+                <div className="grid grid-cols-5 gap-3">
+                  {Object.entries(selectedStudent.marks).map(([subject, mark]) => (
+                    <div key={subject} className="rounded-2xl p-3 text-center"
+                      style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                      <p className="text-xl font-bold mb-1" style={{ color: "#059669" }}>{mark}</p>
+                      <p className="text-xs" style={{ color: "#9ca3af" }}>
+                        {subject.replace(/_/g, " ").split(" ").slice(0, 2).join(" ")}
+                      </p>
+                    </div>
+                  ))}
+                  <div className="rounded-2xl p-3 text-center"
+                    style={{ background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}>
+                    <p className="text-xl font-bold mb-1" style={{ color: "#7c3aed" }}>{selectedStudent.gpa}</p>
+                    <p className="text-xs" style={{ color: "#9ca3af" }}>GPA</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Mentor Feedback Form */}
             <div className="glass-card p-6">
@@ -1013,6 +1182,10 @@ export default function MentorDashboard() {
         )}
 
       </div>
+
+      {/* ── CHATBOT ── */}
+      <ChatBot userRole="mentor" userId={user?.id || 1} />
+
     </div>
   );
 }

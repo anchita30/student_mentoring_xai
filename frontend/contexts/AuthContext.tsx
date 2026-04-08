@@ -42,9 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    const newUser = await authService.register(data);
+    await authService.register(data);
     // Just register, don't auto-login
-    return newUser;
   };
 
   const logout = () => {

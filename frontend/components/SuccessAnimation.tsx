@@ -80,14 +80,14 @@ export default function SuccessAnimation({ show, onHide }: SuccessAnimationProps
 
         {/* Success text */}
         <h2 className="text-5xl font-bold mb-3 text-gradient-lavender typewriter"
-          style={{ fontFamily: "var(--font-architects)" }}>
+          style={{ fontFamily: "var(--font-poppins)" }}>
           Data Saved Successfully!
         </h2>
 
         <p className="text-lg mb-4 fade-in-delayed"
           style={{
             color: "#7c3aed",
-            fontFamily: "var(--font-architects)",
+            fontFamily: "var(--font-poppins)",
           }}>
           Your mentor will review your profile and provide personalized guidance ✨
         </p>

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Architects_Daughter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const architectsDaughter = Architects_Daughter({
-  weight: "400",
+const poppins = Poppins({
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
-  variable: "--font-architects",
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={architectsDaughter.variable} suppressHydrationWarning={true}>
+      <body className={poppins.variable} suppressHydrationWarning={true}>
         <AuthProvider>
           {children}
         </AuthProvider>

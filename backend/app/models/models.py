@@ -14,6 +14,7 @@ class User(Base):
     user_type = Column(String(20), nullable=False)  # "student" or "mentor"
     is_active = Column(Boolean, default=True, nullable=False)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
+    department = Column(String(100), nullable=True)  # For mentors to store their department
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

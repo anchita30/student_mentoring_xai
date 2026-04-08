@@ -5,6 +5,7 @@ import Link from "next/link";
 import { studentAPI, predictionAPI } from "@/lib/api";
 import type { AcademicRecord, Course, Project, Skill } from "@/lib/api";
 import SuccessAnimation from "@/components/SuccessAnimation";
+import ChatBot from "@/components/ChatBot";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SUBJECTS = [
@@ -33,6 +34,14 @@ const NAV_ITEMS = [
   { icon: "🔔", label: "Notifications", id: "notifications", badge: true },
 ];
 
+type CertificateForm = {
+  course_name: string;
+  platform: string;
+  domain: string;
+  completion_percentage: string;
+  certificate_file: File | null;
+};
+
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("home");
   const [showSuccess, setShowSuccess] = useState(false);
@@ -45,7 +54,7 @@ export default function StudentDashboard() {
 
   // Get student ID and branch from auth context
   const studentId = user?.student_id || 1; // Fallback to 1 if not available
-  const studentBranch = user?.user_type === "student" ? "Loading..." : "CS"; // Will be dynamically fetched
+  const studentBranch = user?.branch || "Loading..."; // Use actual branch from user context
 
   const [elective, setElective] = useState("");
   const [marks, setMarks] = useState<Record<string, string>>({});
@@ -60,7 +69,7 @@ export default function StudentDashboard() {
     competitions_participated: "", github_link: "",
     career_goal: "", preferred_learning_style: "",
   });
-  const [certificates, setCertificates] = useState([
+  const [certificates, setCertificates] = useState<CertificateForm[]>([
     { course_name: "", platform: "", domain: "", completion_percentage: "", certificate_file: null }
   ]);
 
@@ -294,7 +303,7 @@ export default function StudentDashboard() {
     fontSize: "13px",
     outline: "none",
     width: "100%",
-    fontFamily: "var(--font-architects)",
+    fontFamily: "var(--font-poppins)",
     color: "#1f1f1f",
     backdropFilter: "blur(10px)",
   };
@@ -305,13 +314,13 @@ export default function StudentDashboard() {
     color: "#6b7280",
     marginBottom: "6px",
     display: "block" as const,
-    fontFamily: "var(--font-architects)",
+    fontFamily: "var(--font-poppins)",
   };
 
   return (
     <div className="min-h-screen flex" style={{
       background: "linear-gradient(135deg, #f5f0ff 0%, #fde8f0 25%, #e8f8f2 50%, #deeeff 100%)",
-      fontFamily: "var(--font-architects)",
+      fontFamily: "var(--font-poppins)",
     }}>
 
       <style>{`
@@ -1004,6 +1013,9 @@ export default function StudentDashboard() {
         show={showSuccess}
         onHide={() => setShowSuccess(false)}
       />
+
+      {/* ── CHATBOT ── */}
+      <ChatBot userRole="student" userId={studentId} />
 
     </div>
   );

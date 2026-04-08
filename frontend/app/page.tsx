@@ -7,7 +7,7 @@ export default function Home() {
       className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center px-6"
       style={{
         background: "linear-gradient(135deg, #f5f0ff 0%, #fde8f0 25%, #e8f8f2 50%, #deeeff 75%, #fff8e8 100%)",
-        fontFamily: "var(--font-architects)",
+        fontFamily: "var(--font-poppins)",
       }}
     >
       {/* Background blobs */}
@@ -38,7 +38,7 @@ export default function Home() {
               background: "linear-gradient(135deg, #7c3aed, #059669)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              fontFamily: "var(--font-architects)",
+              fontFamily: "var(--font-poppins)",
             }}
           >
             DomainDNA
@@ -61,7 +61,7 @@ export default function Home() {
                 background: "rgba(255,255,255,0.6)",
                 border: "1px solid rgba(255,255,255,0.8)",
                 color: tag.color,
-                fontFamily: "var(--font-architects)",
+                fontFamily: "var(--font-poppins)",
               }}
             >
               {tag.label}
@@ -100,7 +100,7 @@ export default function Home() {
 
             <h2
               className="text-2xl font-bold mb-6 text-center"
-              style={{ color: "#6d28d9", fontFamily: "var(--font-architects)" }}
+              style={{ color: "#6d28d9", fontFamily: "var(--font-poppins)" }}
             >
               I am a Student
             </h2>
@@ -111,7 +111,7 @@ export default function Home() {
                 style={{
                   background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
                   boxShadow: "0 4px 15px rgba(124,58,237,0.3)",
-                  fontFamily: "var(--font-architects)",
+                  fontFamily: "var(--font-poppins)",
                 }}
               >
                 Get Started →
@@ -147,7 +147,7 @@ export default function Home() {
 
             <h2
               className="text-2xl font-bold mb-6 text-center"
-              style={{ color: "#065f46", fontFamily: "var(--font-architects)" }}
+              style={{ color: "#065f46", fontFamily: "var(--font-poppins)" }}
             >
               I am a Mentor
             </h2>
@@ -158,7 +158,7 @@ export default function Home() {
                 style={{
                   background: "linear-gradient(135deg, #34d399, #059669)",
                   boxShadow: "0 4px 15px rgba(5,150,105,0.3)",
-                  fontFamily: "var(--font-architects)",
+                  fontFamily: "var(--font-poppins)",
                 }}
               >
                 View Students →
@@ -193,7 +193,7 @@ export default function Home() {
               border: "1.5px solid rgba(255,255,255,0.8)",
               backdropFilter: "blur(12px)",
               boxShadow: `0 4px 15px ${item.color}22`,
-              fontFamily: "var(--font-architects)",
+              fontFamily: "var(--font-poppins)",
               color: item.color,
               fontSize: "14px",
             }}

@@ -24,6 +24,8 @@ export default function MentorLogin() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   const handleTabSwitch = (toLogin: boolean) => {
@@ -82,7 +84,7 @@ export default function MentorLogin() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{
         background: "linear-gradient(135deg, #e8f8f2 0%, #deeeff 50%, #f0fff8 100%)",
-        fontFamily: "var(--font-architects)",
+        fontFamily: "var(--font-poppins)",
       }}
     >
       {/* Background blobs */}
@@ -199,7 +201,7 @@ export default function MentorLogin() {
                       background: "rgba(255,255,255,0.8)",
                       border: "1.5px solid rgba(52,211,153,0.2)",
                       color: "#1f1f1f",
-                      fontFamily: "var(--font-architects)",
+                      fontFamily: "var(--font-poppins)",
                     }}
                   />
                 </div>
@@ -220,7 +222,7 @@ export default function MentorLogin() {
                         background: "rgba(255,255,255,0.8)",
                         border: "1.5px solid rgba(52,211,153,0.2)",
                         color: "#1f1f1f",
-                        fontFamily: "var(--font-architects)",
+                        fontFamily: "var(--font-poppins)",
                       }}
                     />
                   </div>
@@ -237,7 +239,7 @@ export default function MentorLogin() {
                         background: "rgba(255,255,255,0.8)",
                         border: "1.5px solid rgba(52,211,153,0.2)",
                         color: "#1f1f1f",
-                        fontFamily: "var(--font-architects)",
+                        fontFamily: "var(--font-poppins)",
                       }}
                     >
                       <option value="">Select</option>
@@ -263,7 +265,7 @@ export default function MentorLogin() {
                       background: "rgba(255,255,255,0.8)",
                       border: "1.5px solid rgba(52,211,153,0.2)",
                       color: "#1f1f1f",
-                      fontFamily: "var(--font-architects)",
+                      fontFamily: "var(--font-poppins)",
                     }}
                   />
                 </div>
@@ -286,16 +288,28 @@ export default function MentorLogin() {
                   background: "rgba(255,255,255,0.8)",
                   border: "1.5px solid rgba(52,211,153,0.2)",
                   color: "#1f1f1f",
-                  fontFamily: "var(--font-architects)",
+                  fontFamily: "var(--font-poppins)",
                 }}
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-xs font-medium mb-1 block" style={{ color: "#6b7280" }}>
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-xs font-medium" style={{ color: "#6b7280" }}>
+                  Password
+                </label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => alert("Forgot password functionality will be implemented soon.")}
+                    className="text-xs font-medium hover:underline"
+                    style={{ color: "#059669" }}
+                  >
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
               <input
                 name="password"
                 type="password"
@@ -307,7 +321,7 @@ export default function MentorLogin() {
                   background: "rgba(255,255,255,0.8)",
                   border: "1.5px solid rgba(52,211,153,0.2)",
                   color: "#1f1f1f",
-                  fontFamily: "var(--font-architects)",
+                  fontFamily: "var(--font-poppins)",
                 }}
               />
             </div>
@@ -327,7 +341,7 @@ export default function MentorLogin() {
               style={{
                 background: loading ? "#9ca3af" : "linear-gradient(135deg, #34d399, #059669)",
                 boxShadow: "0 4px 15px rgba(5,150,105,0.3)",
-                fontFamily: "var(--font-architects)",
+                fontFamily: "var(--font-poppins)",
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.6 : 1,
               }}

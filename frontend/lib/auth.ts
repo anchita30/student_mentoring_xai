@@ -32,6 +32,7 @@ export interface User {
   is_active: boolean;
   student_id?: number;
   branch?: string;
+  department?: string;  // For mentors
 }
 
 export interface RegisterData {

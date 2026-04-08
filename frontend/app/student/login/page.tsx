@@ -24,6 +24,14 @@ export default function StudentLogin() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear error when user starts typing
+    if (error) setError(null);
+  };
+
+  const validateEmail = (email: string): boolean => {
+    // For students, email must match format: 23104xxx@apsit.edu.in where xxx are 3 digits
+    const studentEmailRegex = /^23104\d{3}@apsit\.edu\.in$/;
+    return studentEmailRegex.test(email);
   };
 
   const handleTabSwitch = (toLogin: boolean) => {
@@ -36,6 +44,13 @@ export default function StudentLogin() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Validate email format for students (registration and login)
+    if (!validateEmail(form.email)) {
+      setError("Email must be in format: 23104xxx@apsit.edu.in (where xxx are 3 digits)");
+      setLoading(false);
+      return;
+    }
 
     try {
       if (isLogin) {
@@ -81,7 +96,7 @@ export default function StudentLogin() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{
         background: "linear-gradient(135deg, #f5f0ff 0%, #fde8f0 50%, #e8f8f2 100%)",
-        fontFamily: "var(--font-architects)",
+        fontFamily: "var(--font-poppins)",
       }}
     >
       {/* Background blobs */}
@@ -198,7 +213,7 @@ export default function StudentLogin() {
                       background: "rgba(255,255,255,0.8)",
                       border: "1.5px solid rgba(167,139,250,0.2)",
                       color: "#1f1f1f",
-                      fontFamily: "var(--font-architects)",
+                      fontFamily: "var(--font-poppins)",
                     }}
                   />
                 </div>
@@ -219,7 +234,7 @@ export default function StudentLogin() {
                         background: "rgba(255,255,255,0.8)",
                         border: "1.5px solid rgba(167,139,250,0.2)",
                         color: "#1f1f1f",
-                        fontFamily: "var(--font-architects)",
+                        fontFamily: "var(--font-poppins)",
                       }}
                     />
                   </div>
@@ -236,7 +251,7 @@ export default function StudentLogin() {
                         background: "rgba(255,255,255,0.8)",
                         border: "1.5px solid rgba(167,139,250,0.2)",
                         color: "#1f1f1f",
-                        fontFamily: "var(--font-architects)",
+                        fontFamily: "var(--font-poppins)",
                       }}
                     >
                       <option value="">Select</option>
@@ -262,7 +277,7 @@ export default function StudentLogin() {
                       background: "rgba(255,255,255,0.8)",
                       border: "1.5px solid rgba(167,139,250,0.2)",
                       color: "#1f1f1f",
-                      fontFamily: "var(--font-architects)",
+                      fontFamily: "var(--font-poppins)",
                     }}
                   />
                 </div>
@@ -272,12 +287,12 @@ export default function StudentLogin() {
             {/* Email */}
             <div>
               <label className="text-xs font-medium mb-1 block" style={{ color: "#6b7280" }}>
-                Email Address
+                Email Address {!isLogin && <span style={{ color: "#7c3aed" }}>(Format: 23104xxx@apsit.edu.in)</span>}
               </label>
               <input
                 name="email"
                 type="email"
-                placeholder="rohit@college.edu"
+                placeholder={isLogin ? "23104xxx@apsit.edu.in" : "23104123@apsit.edu.in"}
                 value={form.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none"
@@ -285,16 +300,28 @@ export default function StudentLogin() {
                   background: "rgba(255,255,255,0.8)",
                   border: "1.5px solid rgba(167,139,250,0.2)",
                   color: "#1f1f1f",
-                  fontFamily: "var(--font-architects)",
+                  fontFamily: "var(--font-poppins)",
                 }}
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-xs font-medium mb-1 block" style={{ color: "#6b7280" }}>
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-xs font-medium" style={{ color: "#6b7280" }}>
+                  Password
+                </label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => alert("Forgot password functionality will be implemented soon.")}
+                    className="text-xs font-medium hover:underline"
+                    style={{ color: "#7c3aed" }}
+                  >
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
               <input
                 name="password"
                 type="password"
@@ -306,7 +333,7 @@ export default function StudentLogin() {
                   background: "rgba(255,255,255,0.8)",
                   border: "1.5px solid rgba(167,139,250,0.2)",
                   color: "#1f1f1f",
-                  fontFamily: "var(--font-architects)",
+                  fontFamily: "var(--font-poppins)",
                 }}
               />
             </div>
@@ -326,7 +353,7 @@ export default function StudentLogin() {
               style={{
                 background: loading ? "#9ca3af" : "linear-gradient(135deg, #a78bfa, #7c3aed)",
                 boxShadow: "0 4px 15px rgba(124,58,237,0.3)",
-                fontFamily: "var(--font-architects)",
+                fontFamily: "var(--font-poppins)",
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.6 : 1,
               }}

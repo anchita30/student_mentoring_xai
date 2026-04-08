@@ -39,7 +39,8 @@ class UserResponse(BaseModel):
     user_type: str
     is_active: bool
     student_id: Optional[int] = None
-    branch: Optional[str] = None  # Add branch field
+    branch: Optional[str] = None  # For students
+    department: Optional[str] = None  # For mentors
 
     class Config:
         from_attributes = True
@@ -126,7 +127,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password,
         full_name=user_data.full_name,
         user_type=user_data.user_type,
-        is_active=True
+        is_active=True,
+        department=user_data.branch if user_data.user_type == "mentor" else None  # Store department for mentors
     )
 
     db.add(db_user)
@@ -165,7 +167,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         user_type=db_user.user_type,
         is_active=db_user.is_active,
         student_id=student_id,
-        branch=user_data.branch if user_data.user_type == "student" else None
+        branch=user_data.branch if user_data.user_type == "student" else None,
+        department=db_user.department  # Return department for mentors
     )
 
 
@@ -203,7 +206,8 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             user_type=user.user_type,
             is_active=user.is_active,
             student_id=user.student_id,
-            branch=branch
+            branch=branch,
+            department=user.department  # Include department for mentors
         )
     )
 
@@ -227,5 +231,6 @@ def read_users_me(current_user: User = Depends(get_current_user), db: Session = 
         user_type=current_user.user_type,
         is_active=current_user.is_active,
         student_id=current_user.student_id,
-        branch=branch
+        branch=branch,
+        department=current_user.department  # Include department for mentors
     )

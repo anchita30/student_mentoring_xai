@@ -177,6 +177,137 @@ def explain_prediction_shap(student_data: Dict[str, Any], top_domain: str = None
     return explanations
 
 
+def generate_textual_explanation(student_data: Dict[str, Any], top_domain: str = None) -> Dict[str, Any]:
+    """
+    Generate natural language explanation for why a student got a particular domain prediction.
+
+    Args:
+        student_data: Student features
+        top_domain: Which domain to explain (defaults to highest scoring domain)
+
+    Returns:
+        Dict with domain name, score, and textual explanation
+    """
+    # Get domain scores
+    predictions = predict_domain_scores(student_data)
+
+    # Find top domain if not specified
+    if top_domain is None:
+        top_domain = max(predictions.items(), key=lambda x: x[1])[0]
+
+    score = predictions[top_domain]
+
+    # Get SHAP explanations
+    shap_explanations = explain_prediction_shap(student_data, top_domain.replace('_', ' ').title())
+
+    # Generate textual explanation based on top contributing factors
+    explanation_parts = []
+
+    # Start with main prediction
+    domain_name = top_domain.replace('_', ' ').title()
+    explanation_parts.append(f"Based on the comprehensive analysis of this student's profile, {domain_name} emerges as the top recommended domain with a score of {score:.1f}/100.")
+
+    # Analyze top 4 contributing factors
+    top_factors = shap_explanations[:4]
+    positive_factors = [f for f in top_factors if f['contribution'] > 0]
+    negative_factors = [f for f in top_factors if f['contribution'] < 0]
+
+    if positive_factors:
+        explanation_parts.append("\n\n🔍 **Key Strengths Supporting This Recommendation:**")
+        for factor in positive_factors:
+            feature_name = factor['feature'].lower()
+            value = factor['value']
+            contribution = factor['contribution']
+
+            # Create domain-specific explanations
+            if feature_name == 'programming comfort':
+                if value >= 7:
+                    explanation_parts.append(f"• **Strong Programming Skills** ({value}/10): The student demonstrates excellent programming comfort, which is crucial for {domain_name}. This high proficiency adds significant weight (+{contribution:.1f}) to the recommendation.")
+                elif value >= 5:
+                    explanation_parts.append(f"• **Solid Programming Foundation** ({value}/10): The student shows good programming comfort, providing a strong base for {domain_name} (+{contribution:.1f}).")
+
+            elif feature_name == 'math comfort':
+                if value >= 7:
+                    explanation_parts.append(f"• **Mathematical Aptitude** ({value}/10): Strong mathematical skills are highly valued in {domain_name}, especially for algorithmic thinking and problem analysis (+{contribution:.1f}).")
+                elif value >= 5:
+                    explanation_parts.append(f"• **Mathematical Foundation** ({value}/10): Good mathematical comfort supports the analytical requirements of {domain_name} (+{contribution:.1f}).")
+
+            elif feature_name == 'problem solving rating':
+                if value >= 7:
+                    explanation_parts.append(f"• **Excellent Problem-Solving** ({value}/10): Outstanding analytical thinking skills are essential for {domain_name}, making this a strong indicator (+{contribution:.1f}).")
+                elif value >= 5:
+                    explanation_parts.append(f"• **Good Problem-Solving** ({value}/10): Solid analytical abilities contribute positively to {domain_name} suitability (+{contribution:.1f}).")
+
+            elif feature_name == 'communication rating':
+                if value >= 7:
+                    explanation_parts.append(f"• **Strong Communication** ({value}/10): Excellent communication skills are valuable in {domain_name} for collaboration and project presentation (+{contribution:.1f}).")
+                elif value >= 5:
+                    explanation_parts.append(f"• **Good Communication** ({value}/10): Solid communication abilities support teamwork in {domain_name} projects (+{contribution:.1f}).")
+
+            elif feature_name == 'num projects':
+                if value >= 2:
+                    explanation_parts.append(f"• **Project Experience** ({value} projects): Substantial hands-on project experience demonstrates practical application skills valued in {domain_name} (+{contribution:.1f}).")
+                elif value >= 1:
+                    explanation_parts.append(f"• **Practical Experience** ({value} project): Real project experience shows ability to apply theoretical knowledge in {domain_name} (+{contribution:.1f}).")
+
+            elif feature_name == 'hackathons participated':
+                if value >= 3:
+                    explanation_parts.append(f"• **Hackathlon Excellence** ({value} hackathons): Extensive hackathon participation shows innovative thinking and rapid development skills crucial for {domain_name} (+{contribution:.1f}).")
+                elif value >= 1:
+                    explanation_parts.append(f"• **Competitive Experience** ({value} hackathons): Hackathon participation demonstrates problem-solving under pressure, valuable for {domain_name} (+{contribution:.1f}).")
+
+            elif feature_name == 'gpa':
+                if value >= 8:
+                    explanation_parts.append(f"• **Academic Excellence** (GPA: {value}): Outstanding academic performance indicates strong foundational knowledge for {domain_name} (+{contribution:.1f}).")
+                elif value >= 7:
+                    explanation_parts.append(f"• **Good Academic Standing** (GPA: {value}): Solid academic performance supports the theoretical requirements of {domain_name} (+{contribution:.1f}).")
+
+    if negative_factors:
+        explanation_parts.append("\n\n⚠️ **Areas for Development:**")
+        for factor in negative_factors:
+            feature_name = factor['feature'].lower()
+            value = factor['value']
+            contribution = abs(factor['contribution'])
+
+            if feature_name == 'math comfort' and value < 5:
+                explanation_parts.append(f"• **Mathematical Skills** ({value}/10): Strengthening mathematical foundation would significantly boost suitability for {domain_name} (current impact: -{contribution:.1f}).")
+            elif feature_name == 'programming comfort' and value < 5:
+                explanation_parts.append(f"• **Programming Skills** ({value}/10): Improving programming comfort is crucial for success in {domain_name} (current impact: -{contribution:.1f}).")
+            elif feature_name == 'problem solving rating' and value < 5:
+                explanation_parts.append(f"• **Problem-Solving** ({value}/10): Developing stronger analytical thinking would benefit {domain_name} performance (current impact: -{contribution:.1f}).")
+
+    # Add domain-specific insights
+    explanation_parts.append("\n\n📚 **Domain-Specific Insights:**")
+    if 'web_development' in top_domain:
+        explanation_parts.append("Web Development requires a strong blend of programming skills, creativity, and user experience understanding. The student's profile aligns well with frontend/backend development opportunities.")
+    elif 'machine_learning' in top_domain:
+        explanation_parts.append("Machine Learning demands strong mathematical foundations, programming skills, and analytical thinking. The student shows good potential for data science and AI development roles.")
+    elif 'data_engineering' in top_domain:
+        explanation_parts.append("Data Engineering requires excellent programming skills, mathematical understanding, and system design capabilities. The student's profile suggests strong potential for building data pipelines and scalable systems.")
+    elif 'cybersecurity' in top_domain:
+        explanation_parts.append("Cybersecurity emphasizes problem-solving, analytical thinking, and technical expertise. The student demonstrates good potential for security analysis and defensive programming.")
+    elif 'cloud_computing' in top_domain:
+        explanation_parts.append("Cloud Computing requires strong programming skills, system design understanding, and continuous learning. The student shows potential for DevOps and cloud architecture roles.")
+    elif 'mobile_development' in top_domain:
+        explanation_parts.append("Mobile Development combines programming expertise with user interface design and platform-specific knowledge. The student demonstrates good alignment with mobile app development.")
+
+    # Add next steps
+    explanation_parts.append("\n\n🚀 **Recommended Next Steps:**")
+    explanation_parts.append(f"1. **Deepen {domain_name} Knowledge**: Focus on core concepts and technologies specific to this field")
+    explanation_parts.append("2. **Build Portfolio Projects**: Create 2-3 substantial projects demonstrating domain expertise")
+    explanation_parts.append("3. **Strengthen Foundation**: Continue developing the mathematical and programming skills identified above")
+    explanation_parts.append("4. **Gain Practical Experience**: Seek internships, hackathons, or open source contributions in this domain")
+
+    return {
+        "domain": domain_name,
+        "score": score,
+        "explanation": "".join(explanation_parts),
+        "confidence_level": "High" if score >= 75 else "Medium" if score >= 60 else "Developing",
+        "top_factors": len(positive_factors),
+        "improvement_areas": len(negative_factors)
+    }
+
+
 def calculate_global_feature_importance(num_samples: int = 100) -> List[Dict[str, Any]]:
     """
     Calculate feature importance across multiple students.

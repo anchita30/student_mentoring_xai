@@ -42,6 +42,16 @@ class GlobalImportanceResponse(BaseModel):
     importance: float
 
 
+class TextualExplanationResponse(BaseModel):
+    student_id: int
+    domain: str
+    score: float
+    explanation: str
+    confidence_level: str
+    top_factors: int
+    improvement_areas: int
+
+
 # ── Helper Functions ──────────────────────────────────────────
 def extract_student_features(student_id: int, db: Session) -> Dict[str, Any]:
     """
@@ -264,3 +274,33 @@ def get_global_feature_importance():
     """
     importance = ml_service.calculate_global_feature_importance()
     return importance
+
+
+@router.get("/{student_id}/explain-text", response_model=TextualExplanationResponse)
+def explain_prediction_textual(
+    student_id: int,
+    domain: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Generate natural language explanations for why a student got a particular domain prediction.
+
+    Args:
+        student_id: Student ID
+        domain: Specific domain to explain (optional, defaults to top domain)
+    """
+    # Extract features
+    features = extract_student_features(student_id, db)
+
+    # Generate textual explanations
+    explanation_data = ml_service.generate_textual_explanation(features, domain)
+
+    return TextualExplanationResponse(
+        student_id=student_id,
+        domain=explanation_data["domain"],
+        score=explanation_data["score"],
+        explanation=explanation_data["explanation"],
+        confidence_level=explanation_data["confidence_level"],
+        top_factors=explanation_data["top_factors"],
+        improvement_areas=explanation_data["improvement_areas"]
+    )
